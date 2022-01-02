@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mutex</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous" />
+</head>
+
+<body>
+    <header class="headerView">
+        <a href="../algo.html" class="text-light ps-3" style="background-color: rgb(63, 53, 199)">
+            <- &nbsp GO TO ALGORITHMS</a>
+            <p class="text-light heading-text text-center">Mutex</p>
+    </header>
+    <section>
+        <div class="container-fluid pt-3">
+            <div class="d-flex justify-content-center">
+                <form class="row row-cols-lg-auto g-3"
+                    onsubmit="event.preventDefault();startProcessVisualization(false);return false" id="formForMutex">
+                    <div class="col-12">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Process Count" id="proceessCount" name="proceessCountValue" required />
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="input-group">
+                            <button class="btn btn-success">Ready For Magic</button>
+                        </div>
+                    </div>
+                    <!-- <div class="col-12">
+                        <div class="input-group">
+                            <button class="btn btn-danger">Stop</button>
+                        </div>
+                    </div> -->
+                    <!-- <div class="col-12">
+                        <div class="input-group">
+                            <a href="../index.html" class="btn btn-secondary">Home</a>
+                        </div>
+                    </div> -->
+                </form>
+            </div>
+        </div>
+    </section>
+    <section class="pt-3">
+        <div class="container-fluid" style="height: 70vh">
+            <div class="row h-100">
+                <div class="col-sm-3 d-flex justify-content-center text-center" style="flex-direction: column">
+                    <p class="text-light mt-3 mb-0">QUEUE STATE</p>
+                    <div class="fist-section mx-auto row p-1" id="queueState"></div>
+                </div>
+                <div class="col-sm-3 d-flex justify-content-between text-center" style="flex-direction: column">
+                    <div class="mx-auto">
+                        <p class="text-light mt-3 mb-0">START STATE</p>
+                        <div class="fist-section" id="startState"></div>
+                    </div>
+                </div>
+                <div class="col-sm-3 d-flex justify-content-between text-center" style="flex-direction: column">
+                    <div class="mx-auto">
+                        <p class="text-light mt-3 mb-0">LOCK STATE</p>
+                        <div class="fist-section" id="lockState"></div>
+                    </div>
+                    <div class="mx-auto">
+                        <p class="text-light mt-3 mb-0">EXIT STATE</p>
+                        <div class="fist-section" id="exitState"></div>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div>
+                        <!-- <h2 class="text-light">
+                            Semaphore :- <span id="semaphoreCount"></span>
+                        </h2> -->
+
+                        <div class="console-design text-light">
+                            <div class="console-navbar">
+                                <div class="console-title">
+                                    <div class="mx-2 text-light">Hey, Log is here!</div>
+                                </div>
+                                <div class="console-button">
+                                    <span class="minimize bg-warning my-auto mx-2"></span>
+                                    <span class="restore bg-success my-auto mx-2"></span>
+                                    <span class="close bg-danger my-auto mx-2"></span>
+                                </div>
+                            </div>
+                            <div class="m-2" style="
+                    background-color: black;
+                    height: 650px-60px;
+                    overflow-y: scroll;
+                    max-height: 590px;
+                    " id="mainLogDiv">
+                                <span class="console-log-text" id="logText"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"
+        integrity="sha512-z4OUqw38qNLpn1libAN9BsoDx6nbNFio5lA6CuTp9NlK83b89hgyCVq+N5FdBJptINztxn1Z3SaKSKUS5UP60Q=="
+        crossorigin="anonymous"></script>
+    <script>
+        let processCount,
+            logText,
+            formData,
+            startState,
+            lockState,
+            exitState,
+            logTextString = null;
+        let p1;
+
+        function startProcessVisualization(isCheck) {
+            formData = new FormData(formForMutex);
+            processCount = formData.get("proceessCountValue");
+
+            let element = document.getElementById("queueState");
+            element.innerHTML = "";
+
+            logText = document.getElementById("logText");
+            logTextString = "log@mutex:~$";
+
+            window.setInterval(function () {
+                var elem = document.getElementById("mainLogDiv");
+                elem.scrollTop = elem.scrollHeight;
+            }, 2000);
+
+            for (let i = 0; i < processCount; i++) {
+                var process = document.createElement("span");
+                process.className = "process-design rounded-circle col-4 px-1";
+                var processInner = document.createElement("div");
+                processInner.className =
+                    "rounded-circle w-100 h-100 text-light text-center";
+                processInner.style.backgroundColor =
+                    "rgb(" +
+                    Math.floor(Math.random() * 255 + 1) +
+                    "," +
+                    Math.floor(Math.random() * 255 + 1) +
+                    "," +
+                    Math.floor(Math.random() * 255 + 1) +
+                    ")";
+
+                var processName = document.createElement("p");
+                processName.textContent = "p" + (i + 1);
+                processInner.appendChild(processName);
+
+                process.appendChild(processInner);
+                process.id = "process" + (i + 1);
+                element.appendChild(process);
+            }
+
+            logTextString += " All processes are created<br>";
+            logText.innerHTML = logTextString;
+
+            startState = document.getElementById("startState");
+            lockState = document.getElementById("lockState");
+            exitState = document.getElementById("exitState");
+
+            for (let i = 0; i < processCount; i++) {
+                let p
+                if (i == 0) {
+                    p1 = document.getElementById("process" + (i + 1))
+                    anime({
+                        targets: p1,
+                        translateY: () => {
+                            return -(p1.offsetTop - startState.offsetTop - 10) + "px";
+                        },
+                        translateX: () => {
+                            return startState.offsetLeft - p1.offsetLeft + 10 + "px";
+                        },
+                        begin: () => {
+                            logTextString +=
+                                "log@mutex:~$ Process " + (i + 1) + " is going to start state<br>";
+                            logText.innerHTML = logTextString;
+                        },
+                        complete: () => {
+                            anime({
+                                targets: p1,
+                                translateY: () => {
+                                    return -(p1.offsetTop - lockState.offsetTop - 10) + "px";
+                                },
+                                translateX: () => {
+                                    return lockState.offsetLeft - p1.offsetLeft + 10 + "px";
+                                },
+                                begin: () => {
+                                    logTextString +=
+                                        "log@mutex:~$ Process " + (i + 1) + " is going to lock state<br>";
+                                    logText.innerHTML = logTextString;
+                                },
+                                duration: 5000,
+                                complete: () => {
+                                    anime({
+                                        targets: p1,
+                                        translateY: () => {
+                                            return -(p1.offsetTop - exitState.offsetTop - 10) + "px";
+                                        },
+                                        translateX: () => {
+                                            return exitState.offsetLeft - p1.offsetLeft + 10 + "px";
+                                        },
+                                        begin: () => {
+                                            logTextString +=
+                                                "log@mutex:~$ Process " + (i + 1) + " is going to exit state<br>";
+                                            logText.innerHTML = logTextString;
+                                        },
+                                        duration: 5000,
+                                        complete: () => {
+                                            logTextString += "log@mutex:~$ YAY, Process " + (i+1) + " completed their job!<br>"
+                                            logText.innerHTML = logTextString
+                                        }
+                                    })
+                                }
+                            })
+                        },
+                        duration: 5000,
+                    });
+                } else {
+                    p = document.getElementById("process" + (i + 1))
+                    anime({
+                        targets: p,
+                        translateY: () => {
+                            return -(p1.offsetTop - startState.offsetTop - 10) + "px";
+                        },
+                        translateX: () => {
+                            return startState.offsetLeft - p1.offsetLeft + 10 + "px";
+                        },
+                        begin: () => {
+                            logTextString +=
+                                "log@mutex:~$ Process " + (i + 1) + " is going to start state<br>";
+                            logText.innerHTML = logTextString;
+                        },
+                        complete: () => {
+                            anime({
+                                targets: p,
+                                translateY: () => {
+                                    return -(p1.offsetTop - lockState.offsetTop - 10) + "px";
+                                },
+                                translateX: () => {
+                                    return lockState.offsetLeft - p1.offsetLeft + 10 + "px";
+                                },
+                                begin: () => {
+                                    logTextString +=
+                                        "log@mutex:~$ Process " + (i + 1) + " is going to lock state<br>";
+                                    logText.innerHTML = logTextString;
+                                },
+                                duration: 5000,
+                                complete: () => {
+                                    anime({
+                                        targets: p,
+                                        translateY: () => {
+                                            return -(p1.offsetTop - exitState.offsetTop - 10) + "px";
+                                        },
+                                        translateX: () => {
+                                            return exitState.offsetLeft - p1.offsetLeft + 10 + "px";
+                                        },
+                                        begin: () => {
+                                            logTextString +=
+                                                "log@mutex:~$ Process " + (i + 1) + " is going to exit state<br>";
+                                            logText.innerHTML = logTextString;
+                                        },
+                                        duration: 5000,
+                                        complete: () => {
+                                            logTextString += "log@mutex:~$ YAY, Process " + (i+1) + " completed their job!<br>"
+                                            logText.innerHTML = logTextString
+                                        }
+                                    })
+                                }
+                            })
+                        },
+                        duration: 5000,
+                        delay: 6000 * i
+                    });
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
